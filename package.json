@@ -1,0 +1,33 @@
+{
+  "name": "angulartics-customerio",
+  "version": "0.9.0",
+  "description": "CustomerIO plugin for Angulartics",
+  "keywords": [
+    "customerio",
+    "analytics",
+    "plugin",
+    "angular",
+    "angulartics"
+  ],
+  "author": "baptistegendron",
+  "contributors": [],
+  "license": "MIT",
+  "main": "scr/index.js",
+  "scripts": {
+    "build": "uglifyjs src/angulartics-customerio.js -c --output dist/angulartics-customerio.min.js --source-map"
+  },
+  "dependencies": {
+    "angulartics": "^1.4.0"
+  },
+  "devDependencies": {
+    "uglify-js": "^3.1.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/baptistegendron/angulartics-customerio"
+  },
+  "bugs": {
+    "url": "https://github.com/baptistegendron/angulartics-customerio/issues"
+  },
+  "homepage": "https://github.com/baptistegendron/angulartics-customerio"
+}
