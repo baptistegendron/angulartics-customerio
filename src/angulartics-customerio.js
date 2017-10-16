@@ -67,11 +67,12 @@ angular.module('angulartics.customerio', ['angulartics'])
          */
         $analyticsProvider.registerPageTrack(function (path, $location) {
             var properties = {
-                url: path
+                url: path,
+                host: $location.host()
             };
             properties = angular.extend({}, superProperties, properties);
 
-            window._cio.track('pageView', properties);
+            window._cio.track('PageView', properties);
         });
 
         /**
@@ -121,7 +122,7 @@ angular.module('angulartics.customerio', ['angulartics'])
           */
         $analyticsProvider.registerSetUserProperties(function (properties) {            
             properties = properties || {};
-            if (properties.id==null) {
+            if (properties.id == null) {
                 properties.id = userId;
             }
 

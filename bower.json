@@ -1,7 +1,7 @@
 {
   "name": "angulartics-customerio",
   "main": "./src/angulartics-customerio.js",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "dependencies": {
     "angulartics": "^1.4.0"
   },
