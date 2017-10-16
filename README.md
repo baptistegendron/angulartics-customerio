@@ -50,16 +50,14 @@ angular.module('myApp', ['angulartics','angulartics.customerio']);
 var myApp = angular.module('myApp',[]);
 
 myApp.config(['$analytics_customerioProvider', function($analytics_customerioProvider) {
-    $analytics_customerioProvider.init("API_KEY");
-    // OR
-    $analytics_customerioProvider.initWithProject("ProjectName", "API_KEY");
+    $analytics_customerioProvider.init("Site_ID");
 }]);
 ```
 
 If needed, you can access the CustomerIO object by injecting '$analytics_customerio'. For instance:
 ```javascript
 myApp.run(['$analytics_customerio', function($analytics_customerio) {
-    $analytics_customerio...
+    $analytics_customerio.cookieNamespace;
 }])
 ```
 Check [CustomerIO documentation](https://customer.io/docs/api/javascript.htm) for more details.
@@ -71,6 +69,7 @@ $analytics.pageTrack()
 $analytics.eventTrack()
 $analytics.setUsernames()
 $analytics.setUserProperties()
+$analytics.setSuperProperties()
 ```
 
 Check [Angulartics documentation](https://github.com/angulartics/angulartics) for more details.

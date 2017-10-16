@@ -1,5 +1,5 @@
 /**
- * CustomerIO support contributed by http://github.com/baptistegendron
+ * CustomerIO support contributed by http://github.com/bateast2
  * License: MIT
  */
 (function (angular) {
@@ -16,9 +16,28 @@ angular.module('angulartics.customerio', ['angulartics'])
      * Loading CustomerIo Snippet
      * @link https://customer.io/docs/api/javascript.html
      */
-    .provider('$analytics_customerio', [function $customerioProvider() {
-       
-	    var provider = {
+    .provider('$analytics_customerio', ['$analyticsProvider', function($analyticsProvider) {        
+        var loadSnippet = function(siteId) {
+
+            // Loading the CustomerIO snippet
+            // IMPORTANT: when updating snippet, prefix '_cio' with 'window.'
+            window._cio = window._cio || [];
+            (function() {
+				var a,b,c;a=function(f){return function(){window._cio.push([f].
+				concat(Array.prototype.slice.call(arguments,0)))}};b=["load","identify",
+				"sidentify","track","page"];for(c=0;c<b.length;c++){window._cio[b[c]]=a(b[c])};
+				var t = document.createElement('script'),
+					s = document.getElementsByTagName('script')[0];
+				t.async = true;
+				t.id    = 'cio-tracker';
+				t.setAttribute('data-site-id', siteId);
+				t.src = 'https://assets.customer.io/assets/track.js';
+				s.parentNode.insertBefore(t, s);
+            })();
+
+        };
+
+        var provider = {
             $get: ['$window', function ($window) {
                 return $window._cio;
             }],
@@ -26,33 +45,17 @@ angular.module('angulartics.customerio', ['angulartics'])
              * Init CustomerIO API.
              *
              * @param {string} siteId
-             * @param {string} userId optional
-             * @param {string} options optional
-             * @param {string} callbackFn(instance) optional
              *
              * @link https://customer.io/docs/api/javascript.html#section-Installation
              */
-            init: function (siteId) {
-                // Loading the CustomerIO snippet
-				var _cio = _cio || [];
-				(function() {
-					var a,b,c;a=function(f){return function(){_cio.push([f].
-					concat(Array.prototype.slice.call(arguments,0)))}};b=["load","identify",
-					"sidentify","track","page"];for(c=0;c<b.length;c++){_cio[b[c]]=a(b[c])};
-					var t = document.createElement('script'),
-						s = document.getElementsByTagName('script')[0];
-					t.async = true;
-					t.id    = 'cio-tracker';
-					t.setAttribute('data-site-id', siteId);
-					t.src = 'https://assets.customer.io/assets/track.js';
-					s.parentNode.insertBefore(t, s);
-				})();
-            }            
+            init: loadSnippet
         };
         return provider;
     }])
     
     .config(['$analyticsProvider', function($analyticsProvider) {
+        var userId;
+        var superProperties = {};
 
         /**
          * Track Pageview in CustomerIO
@@ -63,10 +66,12 @@ angular.module('angulartics.customerio', ['angulartics'])
          * @link https://customer.io/docs/api/javascript.html#section-Track_a_custom_event
          */
         $analyticsProvider.registerPageTrack(function (path, $location) {
-			console.log("EEE location",$location);
-			window._cio.track('pageView', {
+            var properties = {
                 url: path
-            });
+            };
+            properties = angular.extend({}, superProperties, properties);
+
+            window._cio.track('pageView', properties);
         });
 
         /**
@@ -78,19 +83,24 @@ angular.module('angulartics.customerio', ['angulartics'])
           * @link https://customer.io/docs/api/javascript.html#section-Track_a_custom_event
           */
         $analyticsProvider.registerEventTrack(function (eventName, properties) {
-			window._cio.track(eventName, properties);
+            properties = properties || {};
+            properties = angular.extend({}, superProperties, properties);
+
+            window._cio.track(eventName, properties);
         });
 
         /**
          * Set userId in CustomerIO
          * 
-         * @param {string} username (null is allowed for anonymous user)
+         * @param {string} username Must be unique per customer. Null is allowed for anonymous user
          *
          * @link https://customer.io/docs/api/javascript.html#section-Identify_customers
          */
         $analyticsProvider.registerSetUsername(function (username) {
-			window._cio.identify({
-				id: username, // Must be unique per customer. To increase security, we recommend hashing your ids.
+            userId = username;
+
+            window._cio.identify({
+				id: userId
 			});
         });
         
@@ -100,7 +110,7 @@ angular.module('angulartics.customerio', ['angulartics'])
 		  * @param {object} properties = {
           *		first_name: 'John', // Add any attributes you'd like to use in the email subject or body.
 		  *		...
-		  *     id: userId, // Optional if you called $analytics.SetUsername() before
+		  *     id: userId, // Optional if you already called $analytics.SetUsername() before
 		  *   
 		  *   First time you create a user, you shall specify:
 		  * 	email: 'user@domain.com',
@@ -109,10 +119,32 @@ angular.module('angulartics.customerio', ['angulartics'])
 		  *
           * @link https://customer.io/docs/api/javascript.html#section-Identify_customers
           */
-        $analyticsProvider.registerSetUserProperties(function (properties) {
+        $analyticsProvider.registerSetUserProperties(function (properties) {            
             properties = properties || {};
-            			
+            if (properties.id==null) {
+                properties.id = userId;
+            }
+
 			window._cio.identify(properties);
+        });
+
+        /**
+          * Set super properties to be added to all $analytics.pagetTrack and $analytics.eventTrack
+		  * To remove a property, set its value to null
+          *
+		  * @param {object} properties = { superProperty1: value, superPropertyToRemove: null, superProperty2...}
+          */
+        $analyticsProvider.registerSetSuperProperties(function(properties) {
+            for (var property in properties) {
+                if (properties.hasOwnProperty(property)) {
+                    if (properties[property] == null) {
+                        if (superProperties.hasOwnProperty(property))
+                            delete superProperties[property];
+                    } else {
+                        superProperties[property] = properties[property];  
+                    }
+                }
+            }
         });
         
     }]);
